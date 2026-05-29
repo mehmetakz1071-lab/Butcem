@@ -4,36 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bütçem & Birikim</title>
-    
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3067/3067424.png">
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3067/3067424.png" type="image/png">
-
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-white p-6 font-sans">
-
-    <div class="max-w-md mx-auto">
-        <h1 class="text-2xl font-bold mb-6 text-center">Bütçem & Birikim</h1>
+<body class="bg-slate-950 text-white p-4 font-sans">
+    <div class="max-w-md mx-auto space-y-4">
+        <h1 class="text-xl font-bold text-center text-blue-400">Finansal Kontrol Paneli</h1>
         
-        <div class="bg-slate-800 p-4 rounded-lg mb-6">
-            <input type="number" id="tutar" placeholder="Tutar (TL)" class="w-full p-2 mb-2 rounded bg-slate-700 border border-slate-600">
-            <button onclick="ekle()" class="w-full bg-blue-600 p-2 rounded font-bold">Ekle</button>
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+            <input type="number" id="maas" placeholder="Aylık Maaş (TL)" class="w-full p-2 rounded bg-slate-800 border border-slate-700">
+            <input type="number" id="harcama" placeholder="Harcama Tutarı (TL)" class="w-full p-2 rounded bg-slate-800 border border-slate-700">
+            <input type="number" id="birikim" placeholder="Aylık Birikim Hedefi (TL)" class="w-full p-2 rounded bg-slate-800 border border-slate-700">
+            <button onclick="hesapla()" class="w-full bg-blue-600 py-2 rounded font-bold hover:bg-blue-700">Hesapla & Kaydet</button>
         </div>
 
-        <ul id="liste" class="space-y-2"></ul>
+        <div id="sonuc" class="bg-slate-900 p-4 rounded-xl border border-blue-900/50 hidden">
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div><p class="text-xs text-slate-400">Kalan Para</p><p id="kalan" class="font-bold text-green-400">-</p></div>
+                <div><p class="text-xs text-slate-400">Birikim Durumu</p><p id="birikimDurum" class="font-bold text-yellow-400">-</p></div>
+            </div>
+        </div>
     </div>
 
     <script>
-        function ekle() {
-            let tutar = document.getElementById('tutar').value;
-            if(tutar) {
-                let liste = document.getElementById('liste');
-                let li = document.createElement('li');
-                li.className = "bg-slate-800 p-3 rounded flex justify-between";
-                li.innerHTML = `<span>Harcama</span> <span>${tutar} TL</span>`;
-                liste.appendChild(li);
-                document.getElementById('tutar').value = '';
-            }
+        function hesapla() {
+            let m = parseFloat(document.getElementById('maas').value) || 0;
+            let h = parseFloat(document.getElementById('harcama').value) || 0;
+            let b = parseFloat(document.getElementById('birikim').value) || 0;
+            
+            let kalan = m - h - b;
+            let durum = (m - h) >= b ? "Hedefe Ulaşıldı ✅" : "Hedefin Altında ⚠️";
+
+            document.getElementById('sonuc').classList.remove('hidden');
+            document.getElementById('kalan').innerText = kalan + " TL";
+            document.getElementById('birikimDurum').innerText = durum;
         }
     </script>
 </body>
