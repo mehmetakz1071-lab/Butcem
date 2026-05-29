@@ -9,21 +9,32 @@
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3067/3067424.png" type="image/png">
 
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <style>
-        body { background-color: #0f172a; color: white; font-family: sans-serif; }
-    </style>
 </head>
-<body class="p-6">
+<body class="bg-slate-900 text-white p-6 font-sans">
 
-    <h1 class="text-2xl font-bold mb-4">Bütçem & Birikim</h1>
-    <div id="app">
-        <p>Uygulama başarıyla başlatıldı!</p>
+    <div class="max-w-md mx-auto">
+        <h1 class="text-2xl font-bold mb-6 text-center">Bütçem & Birikim</h1>
+        
+        <div class="bg-slate-800 p-4 rounded-lg mb-6">
+            <input type="number" id="tutar" placeholder="Tutar (TL)" class="w-full p-2 mb-2 rounded bg-slate-700 border border-slate-600">
+            <button onclick="ekle()" class="w-full bg-blue-600 p-2 rounded font-bold">Ekle</button>
+        </div>
+
+        <ul id="liste" class="space-y-2"></ul>
     </div>
 
     <script>
-        // İleride buraya bütçe hesaplama kodlarını ekleyeceğiz.
-        console.log("Uygulama çalışıyor!");
+        function ekle() {
+            let tutar = document.getElementById('tutar').value;
+            if(tutar) {
+                let liste = document.getElementById('liste');
+                let li = document.createElement('li');
+                li.className = "bg-slate-800 p-3 rounded flex justify-between";
+                li.innerHTML = `<span>Harcama</span> <span>${tutar} TL</span>`;
+                liste.appendChild(li);
+                document.getElementById('tutar').value = '';
+            }
+        }
     </script>
 </body>
 </html>
