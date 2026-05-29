@@ -1,4 +1,3 @@
-```json
 {
   "name": "Bütçem & Birikim",
   "short_name": "Bütçem",
@@ -8,6 +7,7 @@
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
   "orientation": "portrait",
+  "icons": [
     {
       "src": "icon.svg",
       "sizes": "any",
@@ -16,5 +16,3 @@
     }
   ]
 }
-
-```
