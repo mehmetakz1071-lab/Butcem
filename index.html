@@ -1,44 +1,1008 @@
+```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bütçem & Birikim</title>
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3067/3067424.png">
+    <title>Bütçem & Birikimim - Akıllı Finans Planlayıcı</title>
+    
+    <!-- PWA Meta Etiketleri -->
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bütçem">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+    </style>
 </head>
-<body class="bg-slate-950 text-white p-4 font-sans">
-    <div class="max-w-md mx-auto space-y-4">
-        <h1 class="text-xl font-bold text-center text-blue-400">Finansal Kontrol Paneli</h1>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800/80 bg-slate-900/40 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-emerald-500 to-teal-500 p-2.5 rounded-2xl shadow-lg shadow-emerald-500/20">
+                    <i data-lucide="wallet" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                        Bütçem & Birikimim
+                    </h1>
+                    <p class="text-xs text-slate-400">Akıllı Maaş Dağıtımı ve Tasarruf Asistanı</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 text-xs bg-emerald-500/10 px-3.5 py-2 rounded-xl border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-emerald-300 font-medium">Finansal Durum: <span id="healthScore">Hesaplanıyor</span></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-7xl w-full mx-auto px-4 py-8 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
-            <input type="number" id="maas" placeholder="Aylık Maaş (TL)" class="w-full p-2 rounded bg-slate-800 border border-slate-700">
-            <input type="number" id="harcama" placeholder="Harcama Tutarı (TL)" class="w-full p-2 rounded bg-slate-800 border border-slate-700">
-            <input type="number" id="birikim" placeholder="Aylık Birikim Hedefi (TL)" class="w-full p-2 rounded bg-slate-800 border border-slate-700">
-            <button onclick="hesapla()" class="w-full bg-blue-600 py-2 rounded font-bold hover:bg-blue-700">Hesapla & Kaydet</button>
+        <!-- SOL PANEL: Maaş Girişi & Akıllı 50/30/20 Bütçeleme (4 Kolon) -->
+        <div class="lg:col-span-4 space-y-6 w-full">
+            <!-- Maaş ve Gelir Kartı -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl"></div>
+                
+                <h3 class="text-lg font-bold mb-4 text-slate-200 flex items-center gap-2">
+                    <i data-lucide="coins" class="text-emerald-400 w-5 h-5"></i>
+                    Aylık Maaş / Gelir
+                </h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs text-slate-400 font-medium mb-1.5">Net Maaşınızı Girin (TL)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">₺</span>
+                            <input type="number" id="salaryInput" value="35000" oninput="calculateBudget()" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-9 pr-4 text-emerald-400 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-lg" placeholder="0">
+                        </div>
+                    </div>
+
+                    <!-- Ek Gelir -->
+                    <div>
+                        <label class="block text-xs text-slate-400 font-medium mb-1.5">Ek Gelirler (Varsa, TL)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">₺</span>
+                            <input type="number" id="extraIncomeInput" value="0" oninput="calculateBudget()" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-9 pr-4 text-slate-300 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-800/80 pt-4 flex justify-between items-center">
+                        <span class="text-sm text-slate-400 font-medium">Toplam Gelir</span>
+                        <span id="totalIncomeText" class="text-xl font-extrabold text-white">₺35.000</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Akıllı 50/30/20 Planlayıcı -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-5">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="text-indigo-400 w-5 h-5"></i>
+                        50/30/20 Bütçe Hedefi
+                    </h3>
+                    <button onclick="showExplanationModal()" class="text-slate-500 hover:text-slate-300 transition-colors">
+                        <i data-lucide="help-circle" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- İhtiyaçlar %50 -->
+                    <div class="p-4 bg-slate-950/60 rounded-2xl border border-slate-800/80">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Zorunlu İhtiyaçlar (%50)
+                            </span>
+                            <span id="needsBudgetVal" class="text-sm font-extrabold text-indigo-400">₺17.500</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mb-2">Kira, faturalar, mutfak, ulaşım vb.</p>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div id="needsProgress" class="bg-indigo-500 h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                            <span>Harcanan: <span id="needsSpentText">₺0</span></span>
+                            <span>Kalan: <span id="needsRemainingText">₺17.500</span></span>
+                        </div>
+                    </div>
+
+                    <!-- İstekler %30 -->
+                    <div class="p-4 bg-slate-950/60 rounded-2xl border border-slate-800/80">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-pink-500"></span> Keyfi İstekler (%30)
+                            </span>
+                            <span id="wantsBudgetVal" class="text-sm font-extrabold text-pink-400">₺10.500</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mb-2">Dışarıda yemek, eğlence, alışveriş vb.</p>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div id="wantsProgress" class="bg-pink-500 h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                            <span>Harcanan: <span id="wantsSpentText">₺0</span></span>
+                            <span>Kalan: <span id="wantsRemainingText">₺10.500</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Birikim %20 -->
+                    <div class="p-4 bg-slate-950/60 rounded-2xl border border-slate-800/80">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Birikim & Yatırım (%20)
+                            </span>
+                            <span id="savingsBudgetVal" class="text-sm font-extrabold text-emerald-400">₺7.000</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mb-2">Geleceğe yatırım, altın, acil durum vb.</p>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div id="savingsProgress" class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                            <span>Biriken: <span id="savingsSpentText">₺0</span></span>
+                            <span>Kalan Hedef: <span id="savingsRemainingText">₺7.000</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id="sonuc" class="bg-slate-900 p-4 rounded-xl border border-blue-900/50 hidden">
-            <div class="grid grid-cols-2 gap-4 text-center">
-                <div><p class="text-xs text-slate-400">Kalan Para</p><p id="kalan" class="font-bold text-green-400">-</p></div>
-                <div><p class="text-xs text-slate-400">Birikim Durumu</p><p id="birikimDurum" class="font-bold text-yellow-400">-</p></div>
+        <!-- SAĞ PANEL: Harcama Ekleme, Grafik, Birikim Hedefleri (8 Kolon) -->
+        <div class="lg:col-span-8 space-y-6 w-full">
+            
+            <!-- Hızlı Özet ve Kart Bilgileri -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-4">
+                    <div class="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl">
+                        <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <span class="block text-xs text-slate-400 font-medium">Toplam Harcanan</span>
+                        <span id="totalSpentText" class="text-lg font-bold text-slate-200">₺0</span>
+                    </div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-4">
+                    <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
+                        <i data-lucide="piggy-bank" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <span class="block text-xs text-slate-400 font-medium">Potansiyel Birikim</span>
+                        <span id="totalSavedText" class="text-lg font-bold text-emerald-400">₺7.000</span>
+                    </div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-4">
+                    <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
+                        <i data-lucide="scale" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <span class="block text-xs text-slate-400 font-medium">Kalan Nakit</span>
+                        <span id="walletRemainingText" class="text-lg font-bold text-amber-400">₺35.000</span>
+                    </div>
+                </div>
             </div>
+
+            <!-- Harcama Ekle ve Son Harcamalar -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- Harcama Ekle Formu (5 Kolon) -->
+                <div class="md:col-span-5 bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+                    <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                        <i data-lucide="plus-circle" class="text-emerald-400 w-5 h-5"></i>
+                        Harcama Ekle
+                    </h3>
+                    
+                    <form id="expenseForm" onsubmit="addExpense(event)" class="space-y-3.5">
+                        <div>
+                            <label class="block text-xs text-slate-400 font-medium mb-1">Açıklama</label>
+                            <input type="text" id="expenseTitle" required class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all" placeholder="Market, kira vb.">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs text-slate-400 font-medium mb-1">Tutar (TL)</label>
+                                <input type="number" id="expenseAmount" required class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 font-medium mb-1">Kategori</label>
+                                <select id="expenseType" onchange="toggleSavingsDestination()" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all">
+                                    <option value="needs">İhtiyaçlar (%50)</option>
+                                    <option value="wants">İstekler (%30)</option>
+                                    <option value="savings">Birikim (%20)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Dinamik Hedef Kasa Seçimi (Kategori Birikim olduğunda görünür) -->
+                        <div id="savingsDestinationContainer" class="hidden transition-all duration-300">
+                            <label class="block text-xs text-amber-400 font-bold mb-1 flex items-center gap-1">
+                                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Yatırılacak Birikim Kasası
+                            </label>
+                            <select id="expenseGoalDestination" class="w-full bg-slate-950 border border-amber-500/30 rounded-xl py-2 px-3 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all">
+                                <!-- JS ile dinamik doldurulacak -->
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-400 font-medium mb-1">Harcama Grubu</label>
+                            <select id="expenseCategory" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 px-3 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all">
+                                <option value="🏠 Kira & Ev">🏠 Kira & Ev</option>
+                                <option value="🛒 Market">🛒 Market & Gıda</option>
+                                <option value="⚡ Faturalar">⚡ Faturalar</option>
+                                <option value="🚗 Ulaşım">🚗 Ulaşım & Yakıt</option>
+                                <option value="🎬 Eğlence">🎬 Sinema, Konser & Eğlence</option>
+                                <option value="🍔 Yemek">🍔 Dışarıda Yemek</option>
+                                <option value="📈 Yatırım">📈 Hisse, Fon & Yatırım</option>
+                                <option value="📦 Diğer">📦 Diğer Sürpriz Giderler</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 text-sm shadow-lg shadow-emerald-600/15">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Sisteme Kaydet
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Son Harcamalar Listesi (7 Kolon) -->
+                <div class="md:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between min-h-[340px]">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                                <i data-lucide="list-filter" class="text-indigo-400 w-5 h-5"></i>
+                                Harcama Geçmişi
+                            </h3>
+                            <button onclick="clearExpenses()" class="text-xs text-rose-400 hover:text-rose-300 transition-colors flex items-center gap-1">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                Hepsini Sil
+                            </button>
+                        </div>
+
+                        <div id="expensesList" class="space-y-2 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
+                            <!-- JS ile otomatik doldurulacak -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grafik ve Birikim Hedefleri -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- Harcama Dağılım Grafiği -->
+                <div class="md:col-span-6 bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-200 mb-4 flex items-center gap-2">
+                            <i data-lucide="bar-chart-3" class="text-emerald-400 w-5 h-5"></i>
+                            Kategori Dağılımı (Oransal)
+                        </h3>
+                        <div id="customChartContainer" class="space-y-3">
+                            <!-- JS ile doldurulacak saf CSS bar grafikleri -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Birikim Hedefleri Kası -->
+                <div class="md:col-span-6 bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                                <i data-lucide="target" class="text-pink-400 w-5 h-5"></i>
+                                Birikim Kasaları
+                            </h3>
+                            <button onclick="showAddGoalModal()" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 bg-indigo-500/10 px-2 py-1 rounded-lg border border-indigo-500/20">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Yeni Kasa
+                            </button>
+                        </div>
+
+                        <div id="goalsContainer" class="space-y-3.5 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
+                            <!-- Dinamik Hedefler yüklenecek -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GELECEĞE YATIRIM SİMÜLATÖRÜ -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 relative overflow-hidden">
+                <div class="absolute -left-12 -bottom-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl"></div>
+                
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+                            <i data-lucide="trending-up" class="text-emerald-400 w-5.5 h-5.5"></i>
+                            Bileşik Getiri ve Yatırım Hesaplayıcı
+                        </h3>
+                        <p class="text-xs text-slate-400">Her ay düzenli birikim yaptığınızda yatırımınızın yıllar içindeki büyümesini simüle edin.</p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-slate-950 px-3.5 py-1.5 rounded-xl border border-slate-800 flex-wrap">
+                        <label class="text-xs text-slate-400 font-medium">Yıllık Getiri Oranı:</label>
+                        <select id="roiSelect" onchange="runSimulation()" class="bg-transparent border-none text-emerald-400 font-bold text-sm focus:outline-none">
+                            <option value="0.30">%30 (Defansif / Altın)</option>
+                            <option value="0.55" selected>%55 (Dengeli Portföy)</option>
+                            <option value="0.85">%85 (Agresif Fon / Hisse)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                    <div class="md:col-span-8 grid grid-cols-3 gap-3">
+                        <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 text-center">
+                            <span class="block text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">1. Yıl Sonu</span>
+                            <span id="simYear1" class="text-sm sm:text-base font-extrabold text-slate-200">₺0</span>
+                        </div>
+                        <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 text-center">
+                            <span class="block text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">3. Yıl Sonu</span>
+                            <span id="simYear3" class="text-sm sm:text-base font-extrabold text-slate-200">₺0</span>
+                        </div>
+                        <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 text-center ring-2 ring-emerald-500/30">
+                            <span class="block text-[10px] text-emerald-400 uppercase font-bold tracking-wider mb-1">5. Yıl Sonu ✨</span>
+                            <span id="simYear5" class="text-base sm:text-lg font-black text-emerald-400">₺0</span>
+                        </div>
+                    </div>
+                    <div class="md:col-span-4 bg-emerald-500/5 border border-emerald-500/10 p-4 rounded-2xl text-xs space-y-2 text-slate-300">
+                        <div class="flex items-center gap-2 font-bold text-emerald-400 mb-1">
+                            <i data-lucide="badge-percent" class="w-4 h-4"></i>
+                            Yatırımın Gücü
+                        </div>
+                        <p class="leading-relaxed">Her ay kenara ayırdığınız <strong class="text-white" id="simMonthlySavingsText">₺7.000</strong> yatırım dünyasındaki bileşik getiri sayesinde kartopu gibi büyüyecektir.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AKILLI TASARRUF ASİSTANI -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                    <i data-lucide="lightbulb" class="text-amber-400 w-5 h-5"></i>
+                    Bütçenize Özel Akıllı Öneriler
+                </h3>
+                <div id="aiAdviceContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- JS ile dolacak -->
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Bilgi Modalı -->
+    <div id="infoModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm hidden px-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 relative">
+            <button onclick="closeExplanationModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-200">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="flex items-center gap-2 text-indigo-400 font-bold text-lg">
+                <i data-lucide="info" class="w-5 h-5"></i>
+                50/30/20 Kuralı Nedir?
+            </div>
+            <div class="space-y-3 text-sm text-slate-300 leading-relaxed">
+                <p>Dünyada kabul görmüş en popüler finansal bütçeleme kurallarından biridir:</p>
+                <ul class="list-disc pl-5 space-y-1.5">
+                    <li><strong>%50 İhtiyaçlar:</strong> Yaşamınızı devam ettirmek için ödemek zorunda olduğunuz temel faturalar, kira, gıda ve sağlık harcamalarıdır.</li>
+                    <li><strong>%30 İstekler:</strong> Keyif aldığınız aktiviteler, sinema, dışarıda kahve içme, tatil ve lüks alışverişlerdir.</li>
+                    <li><strong>%20 Birikim:</strong> Geleceğinizi garantiye almak için altına, fona yatırdığınız veya borç kapattığınız paydır.</li>
+                </ul>
+            </div>
+            <button onclick="closeExplanationModal()" class="w-full bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-sm font-semibold text-slate-200 transition-all">Anladım</button>
         </div>
     </div>
 
-    <script>
-        function hesapla() {
-            let m = parseFloat(document.getElementById('maas').value) || 0;
-            let h = parseFloat(document.getElementById('harcama').value) || 0;
-            let b = parseFloat(document.getElementById('birikim').value) || 0;
-            
-            let kalan = m - h - b;
-            let durum = (m - h) >= b ? "Hedefe Ulaşıldı ✅" : "Hedefin Altında ⚠️";
+    <!-- Yeni Hedef Ekleme Modalı -->
+    <div id="goalModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm hidden px-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 relative">
+            <button onclick="closeAddGoalModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-200">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="flex items-center gap-2 text-pink-400 font-bold text-lg">
+                <i data-lucide="target" class="w-5 h-5"></i>
+                Yeni Birikim Kasası Ekle
+            </div>
+            <form onsubmit="createNewGoal(event)" class="space-y-3.5">
+                <div>
+                    <label class="block text-xs text-slate-400 font-medium mb-1">Kasa / Hedef Adı</label>
+                    <input type="text" id="goalTitleInput" required class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50" placeholder="Örn: Yeni Telefon, Ehliyet">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 font-medium mb-1">Hedeflenecek Tutar (TL)</label>
+                    <input type="number" id="goalAmountInput" required class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50" placeholder="0">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 font-medium mb-1">İlk Bakiye (TL)</label>
+                        <input type="number" id="goalCurrentInput" value="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 font-medium mb-1">Simge</label>
+                        <select id="goalIconInput" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50">
+                            <option value="🛡️">🛡️ Acil Durum / Kasa</option>
+                            <option value="🚗">🚗 Araba / Ehliyet</option>
+                            <option value="✈️">✈️ Gezi / Tatil</option>
+                            <option value="💻">💻 Teknolojik Cihaz</option>
+                            <option value="🏠">🏠 Ev / Yuva</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-2.5 rounded-xl transition-all active:scale-[0.98] text-sm">Hedefi Kaydet</button>
+            </form>
+        </div>
+    </div>
 
-            document.getElementById('sonuc').classList.remove('hidden');
-            document.getElementById('kalan').innerText = kalan + " TL";
-            document.getElementById('birikimDurum').innerText = durum;
+    <!-- Para Aktarma Modalı -->
+    <div id="addFundsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm hidden px-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 relative">
+            <button onclick="closeAddFundsModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-200">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="flex items-center gap-2 text-emerald-400 font-bold text-lg">
+                <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
+                Kasaya Nakit Aktar
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 mb-2">Bu birikim kasasına ne kadar eklemek istersiniz?</p>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">₺</span>
+                    <input type="number" id="fundAmountInput" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-9 pr-4 text-emerald-400 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-lg" placeholder="0">
+                </div>
+            </div>
+            <button onclick="confirmAddFunds()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-xl transition-all active:scale-[0.98] text-sm">Kasaya Gönder</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950/80 py-6 mt-12 text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p>© 2026 Akıllı Bütçem. Kişisel harcama analizi ve tasarruf kılavuzu.</p>
+            <div class="flex items-center gap-4">
+                <span class="flex items-center gap-1"><i data-lucide="lock" class="w-4 h-4 text-emerald-500"></i> Verileriniz yerel tarayıcınızda şifresiz ve güvende tutulur</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Tarayıcı uyumlu yerel veritabanı yönetimi
+        let state = {
+            salary: 35000,
+            extraIncome: 0,
+            expenses: [],
+            goals: [
+                { id: 1, name: "🛡️ Acil Durum Kasası", target: 20000, current: 4000 },
+                { id: 2, name: "✈️ Tatil Birikimi", target: 15000, current: 1500 }
+            ],
+            selectedGoalId: null
+        };
+
+        // Service Worker'ı güvenle kaydet
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker başarıyla kaydedildi:', reg.scope))
+                .catch(err => console.error('Service Worker kaydı başarısız:', err));
+            });
+        }
+
+        // Sayfa yüklendiğinde çalışacak ana rutin
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            calculateBudget();
+            renderGoals();
+            updateTips();
+            updateDestinationDropdown();
+            lucide.createIcons();
+        });
+
+        // Verileri Yükle
+        function loadFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem("budget_app_data_v2");
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && typeof parsed === 'object') {
+                        state = { ...state, ...parsed };
+                    }
+                }
+                document.getElementById("salaryInput").value = state.salary || 35000;
+                document.getElementById("extraIncomeInput").value = state.extraIncome || 0;
+            } catch (e) {
+                console.warn("Yerel depolama okunamadı, varsayılan değerler kullanılıyor.");
+            }
+        }
+
+        // Verileri Kaydet
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem("budget_app_data_v2", JSON.stringify(state));
+            } catch (e) {
+                console.error("Yerel depolama yazma hatası.");
+            }
+        }
+
+        // Bütçe Değiştiğinde ve Giriş Yapıldığında Hedef Seçeneklerini Güncelle
+        function updateDestinationDropdown() {
+            const dropdown = document.getElementById("expenseGoalDestination");
+            if (!dropdown) return;
+            
+            if (state.goals.length === 0) {
+                dropdown.innerHTML = `<option value="">Önce birikim kasası oluşturun</option>`;
+                return;
+            }
+
+            dropdown.innerHTML = state.goals.map(g => {
+                return `<option value="${g.id}">${g.name}</option>`;
+            }).join('');
+        }
+
+        // Kategori "Birikim" seçildiğinde hedef kasa seçim panelini aç/kapat
+        function toggleSavingsDestination() {
+            const expenseType = document.getElementById("expenseType").value;
+            const container = document.getElementById("savingsDestinationContainer");
+            
+            if (expenseType === 'savings') {
+                container.classList.remove("hidden");
+                updateDestinationDropdown();
+            } else {
+                container.classList.add("hidden");
+            }
+        }
+
+        // Ana Hesaplama Rutini (Tüm bütçe mantığı)
+        function calculateBudget() {
+            const salary = Math.max(0, parseFloat(document.getElementById("salaryInput").value) || 0);
+            const extra = Math.max(0, parseFloat(document.getElementById("extraIncomeInput").value) || 0);
+
+            state.salary = salary;
+            state.extraIncome = extra;
+            saveToLocalStorage();
+
+            const totalIncome = salary + extra;
+            document.getElementById("totalIncomeText").innerText = formatCurrency(totalIncome);
+
+            // 50/30/20 Limit Değerleri
+            const needsBudget = totalIncome * 0.50;
+            const wantsBudget = totalIncome * 0.30;
+            const savingsBudget = totalIncome * 0.20;
+
+            document.getElementById("needsBudgetVal").innerText = formatCurrency(needsBudget);
+            document.getElementById("wantsBudgetVal").innerText = formatCurrency(wantsBudget);
+            document.getElementById("savingsBudgetVal").innerText = formatCurrency(savingsBudget);
+
+            // Gerçekleşen Harcamaların Hesaplanması
+            const needsSpent = state.expenses.filter(e => e.type === 'needs').reduce((s, e) => s + e.amount, 0);
+            const wantsSpent = state.expenses.filter(e => e.type === 'wants').reduce((s, e) => s + e.amount, 0);
+            const savingsSpent = state.expenses.filter(e => e.type === 'savings').reduce((s, e) => s + e.amount, 0);
+
+            const totalSpent = needsSpent + wantsSpent + savingsSpent;
+            document.getElementById("totalSpentText").innerText = formatCurrency(totalSpent);
+
+            // Kalan limitler
+            const needsRemaining = needsBudget - needsSpent;
+            const wantsRemaining = wantsBudget - wantsSpent;
+            const savingsRemaining = savingsBudget - savingsSpent;
+
+            // Kalan Nakit Değeri
+            const walletRemaining = Math.max(0, totalIncome - totalSpent);
+            document.getElementById("walletRemainingText").innerText = formatCurrency(walletRemaining);
+            document.getElementById("totalSavedText").innerText = formatCurrency(savingsSpent);
+
+            // Harcanan / Kalan Etiketleri
+            document.getElementById("needsSpentText").innerText = formatCurrency(needsSpent);
+            document.getElementById("needsRemainingText").innerText = formatCurrency(needsRemaining);
+            document.getElementById("wantsSpentText").innerText = formatCurrency(wantsSpent);
+            document.getElementById("wantsRemainingText").innerText = formatCurrency(wantsRemaining);
+            document.getElementById("savingsSpentText").innerText = formatCurrency(savingsSpent);
+            document.getElementById("savingsRemainingText").innerText = formatCurrency(savingsRemaining);
+
+            // Progress bar oranları
+            document.getElementById("needsProgress").style.width = `${Math.min(100, (needsSpent / needsBudget) * 100) || 0}%`;
+            document.getElementById("wantsProgress").style.width = `${Math.min(100, (wantsSpent / wantsBudget) * 100) || 0}%`;
+            document.getElementById("savingsProgress").style.width = `${Math.min(100, (savingsSpent / savingsBudget) * 100) || 0}%`;
+
+            // Finansal Skor Güncellemesi
+            const healthScore = document.getElementById("healthScore");
+            const ratio = totalSpent / (totalIncome || 1);
+            if (ratio < 0.4) {
+                healthScore.innerText = "Kusursuz 🟢";
+                healthScore.className = "text-emerald-400 font-extrabold";
+            } else if (ratio < 0.7) {
+                healthScore.innerText = "Dengede 🟡";
+                healthScore.className = "text-yellow-400 font-extrabold";
+            } else {
+                healthScore.innerText = "Yüksek Harcama Riski 🔴";
+                healthScore.className = "text-rose-400 font-extrabold animate-pulse";
+            }
+
+            renderExpensesList();
+            renderCustomChart();
+            runSimulation();
+        }
+
+        // Yeni Gider Ekleme
+        function addExpense(e) {
+            e.preventDefault();
+
+            const title = document.getElementById("expenseTitle").value.trim();
+            const amount = parseFloat(document.getElementById("expenseAmount").value) || 0;
+            const type = document.getElementById("expenseType").value;
+            const category = document.getElementById("expenseCategory").value;
+
+            if (!title || amount <= 0) return;
+
+            // Eğer kategori birikim ise ve hedef seçilmişse kasayı doldur
+            if (type === 'savings' && state.goals.length > 0) {
+                const destinationId = parseInt(document.getElementById("expenseGoalDestination").value);
+                const targetGoal = state.goals.find(g => g.id === destinationId);
+                if (targetGoal) {
+                    targetGoal.current += amount;
+                }
+            }
+
+            const newExpense = {
+                id: Date.now(),
+                title,
+                amount,
+                type,
+                category,
+                date: new Date().toLocaleDateString('tr-TR')
+            };
+
+            state.expenses.unshift(newExpense);
+            saveToLocalStorage();
+
+            // Formu Temizle
+            document.getElementById("expenseTitle").value = "";
+            document.getElementById("expenseAmount").value = "";
+
+            // Birikim alanı gizle ve dropdown sıfırla
+            document.getElementById("expenseType").value = "needs";
+            toggleSavingsDestination();
+
+            calculateBudget();
+            renderGoals();
+            updateTips();
+            alertNotification("Gider kalemi eklendi.");
+        }
+
+        // Gider Sil
+        function deleteExpense(id) {
+            state.expenses = state.expenses.filter(e => e.id !== id);
+            saveToLocalStorage();
+            calculateBudget();
+            updateTips();
+            alertNotification("Gider silindi.");
+        }
+
+        // Hepsini Temizle
+        function clearExpenses() {
+            state.expenses = [];
+            saveToLocalStorage();
+            calculateBudget();
+            updateTips();
+            alertNotification("Geçmiş tamamen temizlendi.");
+        }
+
+        // Harcamaları Listele
+        function renderExpensesList() {
+            const list = document.getElementById("expensesList");
+            if (state.expenses.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 text-slate-500">
+                        <i data-lucide="receipt" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
+                        <p class="text-xs px-4">Henüz kayıtlı gider bulunmuyor. Harcamalarınızı ekleyerek başlayabilirsiniz.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            list.innerHTML = state.expenses.map(exp => {
+                let col = "text-indigo-400 bg-indigo-500/10";
+                if (exp.type === 'wants') col = "text-pink-400 bg-pink-500/10";
+                if (exp.type === 'savings') col = "text-emerald-400 bg-emerald-500/10";
+
+                return `
+                    <div class="flex items-center justify-between p-3 bg-slate-950/60 border border-slate-800 rounded-xl hover:border-slate-700/60 transition-all gap-2">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="text-lg bg-slate-900 p-1.5 rounded-lg border border-slate-800 shrink-0">${exp.category.split(' ')[0] || '💸'}</div>
+                            <div class="truncate">
+                                <span class="text-xs font-bold text-slate-200 block truncate">${exp.title}</span>
+                                <span class="text-[10px] text-slate-500 block truncate">${exp.date} • ${exp.category}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-[9px] px-1.5 py-0.5 rounded-md ${col} font-semibold hidden sm:inline">${exp.type === 'needs' ? 'Zorunlu' : exp.type === 'wants' ? 'İstek' : 'Yatırım'}</span>
+                            <span class="text-sm font-extrabold text-slate-200">-${formatCurrency(exp.amount)}</span>
+                            <button onclick="deleteExpense(${exp.id})" class="text-slate-500 hover:text-rose-400 p-1 transition-colors">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // Saf HTML/CSS Kategori Çizge Çözümü
+        function renderCustomChart() {
+            const container = document.getElementById("customChartContainer");
+            const categories = {};
+            
+            state.expenses.forEach(exp => {
+                categories[exp.category] = (categories[exp.category] || 0) + exp.amount;
+            });
+
+            const total = Object.values(categories).reduce((sum, a) => sum + a, 0) || 1;
+            const keys = Object.keys(categories);
+
+            if (keys.length === 0) {
+                container.innerHTML = `
+                    <p class="text-xs text-slate-500 text-center py-6">Kategori oranlarını görmek için harcama kaydı ekleyin.</p>
+                `;
+                return;
+            }
+
+            // En çok harcanana göre sırala
+            const sorted = keys.map(k => ({ name: k, amount: categories[k] })).sort((a,b) => b.amount - a.amount);
+
+            container.innerHTML = sorted.map(item => {
+                const percentage = ((item.amount / total) * 100).toFixed(0);
+                return `
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-300 truncate mr-2">${item.name}</span>
+                            <span class="text-slate-400 shrink-0">${formatCurrency(item.amount)} (%${percentage})</span>
+                        </div>
+                        <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                            <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Birikim Hedeflerini Çizdir
+        function renderGoals() {
+            const container = document.getElementById("goalsContainer");
+            if (state.goals.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Kayıtlı birikim kasası bulunmuyor.</p>`;
+                return;
+            }
+
+            container.innerHTML = state.goals.map(g => {
+                const pct = Math.min(100, (g.current / g.target) * 100).toFixed(1);
+                return `
+                    <div class="bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800">
+                        <div class="flex justify-between items-center mb-1.5 gap-2">
+                            <div class="truncate">
+                                <span class="text-sm font-bold text-slate-200 truncate block">${g.name}</span>
+                            </div>
+                            <span class="text-xs font-semibold text-emerald-400 shrink-0">${formatCurrency(g.current)} / ${formatCurrency(g.target)}</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-1">
+                            <div class="bg-gradient-to-r from-pink-500 to-indigo-500 h-full rounded-full" style="width: ${pct}%;"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>Kasa Doluluğu: %${pct}</span>
+                            <div class="flex gap-2">
+                                <button onclick="addFundsToGoal(${g.id})" class="text-emerald-400 hover:underline font-bold">Nakit Ekle (+)</button>
+                                <button onclick="deleteGoal(${g.id})" class="text-rose-400 hover:underline">Kaldır</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Hedefler güncellendikten sonra form dropdown'ını da güncelle
+            updateDestinationDropdown();
+        }
+
+        // Kasaya Doğrudan Para Aktarma
+        function addFundsToGoal(id) {
+            state.selectedGoalId = id;
+            document.getElementById("addFundsModal").classList.remove("hidden");
+        }
+
+        function closeAddFundsModal() {
+            document.getElementById("addFundsModal").classList.add("hidden");
+            document.getElementById("fundAmountInput").value = "";
+        }
+
+        function confirmAddFunds() {
+            const val = parseFloat(document.getElementById("fundAmountInput").value) || 0;
+            if (val <= 0) return;
+
+            const goal = state.goals.find(g => g.id === state.selectedGoalId);
+            if (goal) {
+                goal.current += val;
+                
+                // Yatırım harcaması olarak kaydet
+                state.expenses.unshift({
+                    id: Date.now(),
+                    title: `Kasaya Manuel Aktarım: ${goal.name.split(' ').slice(1).join(' ')}`,
+                    amount: val,
+                    type: "savings",
+                    category: "📈 Yatırım",
+                    date: new Date().toLocaleDateString('tr-TR')
+                });
+
+                saveToLocalStorage();
+                calculateBudget();
+                renderGoals();
+                closeAddFundsModal();
+                alertNotification("Para başarıyla kasaya kilitlendi!");
+            }
+        }
+
+        // Yeni Kasa Modalı Aç/Kapat
+        function showAddGoalModal() {
+            document.getElementById("goalModal").classList.remove("hidden");
+        }
+
+        // Modalı Kapat
+        function closeAddGoalModal() {
+            document.getElementById("goalModal").classList.add("hidden");
+        }
+
+        // Yeni Kasa Kaydet
+        function createNewGoal(e) {
+            e.preventDefault();
+            const title = document.getElementById("goalTitleInput").value.trim();
+            const target = parseFloat(document.getElementById("goalAmountInput").value) || 0;
+            const current = parseFloat(document.getElementById("goalCurrentInput").value) || 0;
+            const sym = document.getElementById("goalIconInput").value;
+
+            if (!title || target <= 0) return;
+
+            state.goals.push({
+                id: Date.now(),
+                name: `${sym} ${title}`,
+                target,
+                current
+            });
+
+            saveToLocalStorage();
+            renderGoals();
+            closeAddGoalModal();
+            alertNotification("Yeni hedef kasası oluşturuldu.");
+        }
+
+        // Kasa Kaldırma
+        function deleteGoal(id) {
+            state.goals = state.goals.filter(g => g.id !== id);
+            saveToLocalStorage();
+            renderGoals();
+            alertNotification("Kasa silindi.");
+        }
+
+        // Yatırım Simülasyonu (Bileşik Getiri)
+        function runSimulation() {
+            const totalIncome = state.salary + state.extraIncome;
+            const savings = totalIncome * 0.20; // Maaşın %20'si
+
+            document.getElementById("simMonthlySavingsText").innerText = formatCurrency(savings);
+
+            const rate = parseFloat(document.getElementById("roiSelect").value);
+            const monthlyRate = rate / 12;
+
+            let b1 = 0, b3 = 0, b5 = 0;
+            let current = 0;
+
+            for (let m = 1; m <= 60; m++) {
+                current = (current + savings) * (1 + monthlyRate);
+                if (m === 12) b1 = current;
+                if (m === 36) b3 = current;
+                if (m === 60) b5 = current;
+            }
+
+            document.getElementById("simYear1").innerText = formatCurrency(Math.round(b1));
+            document.getElementById("simYear3").innerText = formatCurrency(Math.round(b3));
+            document.getElementById("simYear5").innerText = formatCurrency(Math.round(b5));
+        }
+
+        // Dinamik Öneriler Alanı
+        function updateTips() {
+            const container = document.getElementById("aiAdviceContainer");
+            const totalIncome = state.salary + state.extraIncome;
+            const wantsSpent = state.expenses.filter(e => e.type === 'wants').reduce((s, e) => s + e.amount, 0);
+            const wantsLimit = totalIncome * 0.30;
+
+            let html = "";
+
+            if (state.expenses.length === 0) {
+                html += `
+                    <div class="p-4 bg-slate-950/60 border border-slate-800 rounded-2xl flex gap-3">
+                        <span class="text-lg">💰</span>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-300 mb-1">Gelir Dağıtımı Önerisi</span>
+                            <p class="text-[11px] text-slate-500 leading-relaxed">Maaşınız yattığı gibi %20'lik dilimi birikim hesaplarına aktararak 'önce kendini öde' kuralını uygulayın.</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (wantsSpent > wantsLimit) {
+                html += `
+                    <div class="p-4 bg-rose-500/5 border border-rose-500/20 rounded-2xl flex gap-3 animate-pulse">
+                        <span class="text-lg">⚠️</span>
+                        <div>
+                            <span class="block text-xs font-bold text-rose-300 mb-1">Keyfi Harcamalar Fazla!</span>
+                            <p class="text-[11px] text-rose-400/85 leading-relaxed">Keyfi isteklerinize ayrılan %30'luk limiti aştınız. Diğer kategorilerden tasarruf etmelisiniz.</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl flex gap-3">
+                        <span class="text-lg">✔️</span>
+                        <div>
+                            <span class="block text-xs font-bold text-emerald-300 mb-1">Disiplinli Gidiyorsunuz</span>
+                            <p class="text-[11px] text-emerald-400/85 leading-relaxed">Harcamalarınız şu anda bütçe planına tam uyum sağlıyor. Bu ay sonu birikim hedefinize kolayca ulaşabilirsiniz!</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="p-4 bg-slate-950/60 border border-slate-800 rounded-2xl flex gap-3">
+                    <span class="text-lg">💡</span>
+                    <div>
+                        <span class="block text-xs font-bold text-slate-300 mb-1">Bileşik Getiriyi Kullanın</span>
+                        <p class="text-[11px] text-slate-500 leading-relaxed">Tasarruf ettiğiniz parayı vadeli hesaplar, altın veya hisse senedi fonlarında değerlendirerek enflasyon koruması sağlayın.</p>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // Genel Yardımcı Araçlar
+        function formatCurrency(val) {
+            return "₺" + parseFloat(val).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        // Detay Açıklama Modalı
+        function showExplanationModal() {
+            document.getElementById("infoModal").classList.remove("hidden");
+        }
+
+        function closeExplanationModal() {
+            document.getElementById("infoModal").classList.add("hidden");
+        }
+
+        // Toast Bildirimi
+        function alertNotification(message) {
+            const oldToasts = document.querySelectorAll(".custom-toast");
+            oldToasts.forEach(t => t.remove());
+
+            const toast = document.createElement("div");
+            toast.className = "custom-toast fixed bottom-5 right-5 z-50 bg-slate-900 border border-slate-800 text-slate-200 px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-bounce";
+            toast.innerHTML = `
+                <span class="text-emerald-400">✔</span>
+                <p class="text-xs font-semibold">${message}</p>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 2500);
         }
     </script>
 </body>
 </html>
+
+```
